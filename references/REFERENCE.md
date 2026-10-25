@@ -157,15 +157,18 @@ export class NotchDragSequencer {
     this.timers = [];
     this.cursorEl.dataset.state = 'hidden';
     this.notchEl.dataset.open = 'false';
+    this.notchEl.dataset.hoverSlot = '';
+    this.stageEl.dataset.draggingWin = '';
   }
 
   play() {
     this.stop();
+    const { width, height } = this.stageEl.getBoundingClientRect();
     const at = (ms, fn) => this.timers.push(setTimeout(fn, ms));
 
     at(50, () => {
       this.cursorEl.dataset.state = 'visible';
-      this.cursorEl.style.transform = 'translate3d(280px, 120px, 0)';
+      this.cursorEl.style.transform = `translate3d(${width * 0.25}px, ${height * 0.18}px, 0)`;
     });
 
     at(750, () => {
@@ -174,7 +177,7 @@ export class NotchDragSequencer {
     });
 
     at(1250, () => {
-      this.cursorEl.style.transform = 'translate3d(460px, 28px, 0)';
+      this.cursorEl.style.transform = `translate3d(${width * 0.5}px, ${height * 0.04}px, 0)`;
       this.notchEl.dataset.open = 'true';
       this.notchEl.dataset.hoverSlot = 'personal';
     });
@@ -188,3 +191,13 @@ export class NotchDragSequencer {
   }
 }
 ```
+
+## Integration and Validation Notes
+
+These modules are architectural samples, not a complete copy-and-paste application. Use the stage's actual dimensions for all cursor waypoints and store state in one controller. Couple the cursor's drop action to the same state update used by manual controls.
+
+- Use a stable logical coordinate system or percentages for windows and dock targets; derive pixel positions after measuring the stage.
+- The animator's first `setTarget` initializes at the target without an entrance animation. Initialize from the desired start position before sending an animated target.
+- `NotchDragSequencer.stop()` clears pending steps; also invoke it before manual state changes, on resize, and on unmount. Remove global event listeners and cancel any active animation frames when the owning component unmounts.
+- Disable automatic animation when `prefers-reduced-motion: reduce` matches; keep all product functions available.
+- Validate every demo state with direct clicks and keyboard access, including rapid replay, switching layouts mid-gesture, and small-screen resizing.
