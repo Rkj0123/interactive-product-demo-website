@@ -5,47 +5,251 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Interactive Snapshot Product Demo — Backdrop Stage Blueprint</title>
   <style>
-    :root { --bg: #07080c; --surface: #11141d; --border: rgba(255,255,255,0.11); --text: #f3f5f9; --muted: #949db0; --accent: #4f82ff; }
+    :root {
+      --bg: #07080c;
+      --surface: #11141d;
+      --border: rgba(255, 255, 255, 0.11);
+      --text: #f3f5f9;
+      --muted: #949db0;
+      --accent: #4f82ff;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 48px; gap: 20px; }
-    .screen-overlay { position: relative; width: min(980px, 95vw); aspect-ratio: 16 / 10; background: radial-gradient(circle at 22% 18%, #202d4a 0%, #0b0e17 72%); border-radius: 18px; border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 32px 90px rgba(0,0,0,0.75); overflow: hidden; }
-    .os-menubar { height: 26px; background: rgba(10,12,18,0.72); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-size: 11px; color: #cdd5e5; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .os-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: #040507; border-radius: 0 0 14px 14px; padding: 6px 18px; z-index: 60; border: 1px solid rgba(255,255,255,0.1); border-top: none; transition: all 0.35s cubic-bezier(0.22,1,0.36,1); display: flex; gap: 10px; align-items: center; }
-    .os-notch[data-open="true"] { padding: 12px 20px; border-radius: 0 0 18px 18px; }
-    .notch-slot { font-size: 11px; padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--muted); }
-    .notch-slot.active, .os-notch[data-hover-slot="personal"] .notch-slot[data-slot="personal"] { background: var(--accent); color: #fff; }
-    .demo-window { position: absolute; left: 0; top: 0; background: #141824; border: 1px solid rgba(255,255,255,0.14); border-radius: 11px; box-shadow: 0 20px 44px rgba(0,0,0,0.52); overflow: hidden; will-change: transform, width, height, opacity; transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), width 0.55s cubic-bezier(0.22,1,0.36,1), height 0.55s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease; }
-    .win-bar { height: 28px; background: #1c2130; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; padding: 0 10px; gap: 6px; font-size: 11px; color: var(--muted); }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      gap: 20px;
+    }
+    .chapter-nav {
+      display: flex;
+      gap: 8px;
+      background: var(--surface);
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .chapter-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .chapter-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+    .screen-overlay {
+      position: relative;
+      width: min(980px, 95vw);
+      aspect-ratio: 16 / 10;
+      background: radial-gradient(circle at 22% 18%, #202d4a 0%, #0b0e17 72%);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 32px 90px rgba(0, 0, 0, 0.75);
+      overflow: hidden;
+    }
+    .os-menubar {
+      height: 26px;
+      background: rgba(10, 12, 18, 0.72);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 11px;
+      color: #cdd5e5;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .os-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #040507;
+      border-radius: 0 0 14px 14px;
+      padding: 6px 18px;
+      z-index: 60;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: none;
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .os-notch[data-open="true"] {
+      padding: 12px 20px;
+      border-radius: 0 0 18px 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    }
+    .notch-slot {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      transition: all 0.25s ease;
+    }
+    .notch-slot.active, .os-notch[data-hover-slot="personal"] .notch-slot[data-slot="personal"] {
+      background: var(--accent);
+      color: #fff;
+    }
+    .demo-window {
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: #141824;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 11px;
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.52);
+      overflow: hidden;
+      will-change: transform, width, height, opacity;
+      transition:
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.38s ease;
+    }
+    .win-bar {
+      height: 28px;
+      background: #1c2130;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
     .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
-    .win-body { padding: 14px; font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.55; color: #c9d2e6; }
-    .demo-cursor { position: absolute; left: 0; top: 0; z-index: 99; pointer-events: none; opacity: 0; transition: transform 0.65s cubic-bezier(0.22,1,0.36,1), opacity 0.25s ease; display: flex; align-items: center; gap: 6px; }
-    .demo-cursor[data-state="visible"], .demo-cursor[data-state="grabbing"] { opacity: 1; }
-    .cursor-badge { background: var(--accent); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 999px; }
-    .hud-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: var(--surface); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); }
-    .pill { background: transparent; color: var(--muted); border: none; padding: 7px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; }
-    .pill[aria-pressed="true"] { background: var(--accent); color: #fff; }
+    .dot.r { background: #ff5f56; }
+    .dot.y { background: #ffbd2e; }
+    .dot.g { background: #27c93f; }
+    .win-body {
+      padding: 14px;
+      font-family: "SF Mono", ui-monospace, monospace;
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: #c9d2e6;
+    }
+    .demo-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 99;
+      pointer-events: none;
+      opacity: 0;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .demo-cursor[data-state="visible"], .demo-cursor[data-state="grabbing"] {
+      opacity: 1;
+    }
+    .cursor-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .hud-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .pill {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pill[aria-pressed="true"] {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .chapter-btn:focus-visible, .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    @media (max-width: 640px) {
+      .chapter-nav, .hud-bar { border-radius: 16px; flex-wrap: wrap; justify-content: center; }
+      .chapter-btn { padding: 8px 10px; }
+      .screen-overlay { width: 100%; }
+      .os-menubar span:last-child { display: none; }
+      .win-body { font-size: 10px; padding: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .demo-window, .demo-cursor, .os-notch, .chapter-btn, .pill { transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>
-  <div class="screen-overlay" id="stage" data-project="dev" data-layout="main-stack">
-    <div class="os-menubar"><span>Backdrop · Window Manager</span><span>⌃⌥1 School · ⌃⌥2 Development · ⌃⌥3 Personal</span></div>
+  <nav class="chapter-nav" aria-label="Product Tour Chapters">
+    <button class="chapter-btn active" data-chapter="projects">01 · Projects</button>
+    <button class="chapter-btn" data-chapter="layouts">02 · Layouts</button>
+    <button class="chapter-btn" data-chapter="notchboard">03 · Notchboard Drag</button>
+  </nav>
+
+  <div class="screen-overlay" id="stage" data-project="dev" data-layout="main-stack" data-chapter="projects">
+    <div class="os-menubar">
+      <span>Backdrop · Window Manager</span>
+      <span>⌃⌥1 School · ⌃⌥2 Development · ⌃⌥3 Personal</span>
+    </div>
+
     <div class="os-notch" id="notch" data-open="false">
       <span class="notch-slot" data-slot="school">1 School</span>
       <span class="notch-slot active" data-slot="dev">2 Development</span>
       <span class="notch-slot" data-slot="personal">3 Personal</span>
     </div>
-    <div class="demo-window" id="win-xcode" data-owner="dev"><div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Xcode — LayoutEngine.swift</span></div><div class="win-body">func tileWindows(for project: Project, preset: Layout)</div></div>
-    <div class="demo-window" id="win-term" data-owner="dev"><div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Terminal — backdrop — zsh</span></div><div class="win-body">$ swift test ✔ passed (0.042s)</div></div>
-    <div class="demo-window" id="win-safari-dev" data-owner="dev"><div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Safari — Apple Developer Docs</span></div><div class="win-body">AXUIElementSetAttributeValue(windowRef, kAXPositionAttribute)</div></div>
-    <div class="demo-window" id="win-notes" data-owner="school"><div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>TextEdit — The Quiet Cost of Switching.rtf</span></div><div class="win-body">Every context switch leaves attention residue...</div></div>
-    <div class="demo-window" id="win-preview" data-owner="personal"><div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Preview — Lisbon trip.pdf</span></div><div class="win-body">Itinerary: Alfama · Belém · Sintra</div></div>
+
+    <div class="demo-window" id="win-xcode" data-owner="dev">
+      <div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Xcode — LayoutEngine.swift</span></div>
+      <div class="win-body">func tileWindows(for project: Project, preset: Layout) {<br/>  let rects = preset.compute(in: screen.bounds)<br/>  project.windows.SpringAnimate(to: rects)<br/>}</div>
+    </div>
+    <div class="demo-window" id="win-term" data-owner="dev">
+      <div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Terminal — backdrop — zsh</span></div>
+      <div class="win-body">$ swift test --filter LayoutEngineTests<br/>✔ Test Suite 'All tests' passed (0.042s)</div>
+    </div>
+    <div class="demo-window" id="win-safari-dev" data-owner="dev">
+      <div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Safari — Accessibility | Apple Developer</span></div>
+      <div class="win-body">AXUIElementSetAttributeValue(windowRef, kAXPositionAttribute, posVal)</div>
+    </div>
+    <div class="demo-window" id="win-notes" data-owner="school">
+      <div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>TextEdit — The Quiet Cost of Switching.rtf</span></div>
+      <div class="win-body">Every context switch leaves attention residue across open windows...</div>
+    </div>
+    <div class="demo-window" id="win-preview" data-owner="personal">
+      <div class="win-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Preview — Lisbon trip.pdf</span></div>
+      <div class="win-body">Itinerary: Alfama · Belém · Sintra Day Trip</div>
+    </div>
+
     <div class="demo-cursor" id="cursor" data-state="hidden">
-      <svg width="20" height="20" viewBox="0 0 24 24"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#fff" stroke="#000" stroke-width="1.5"/></svg>
-      <span class="cursor-badge">Drag to Notchboard</span>
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#fff" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <span class="cursor-badge" id="cursorBadge">Drag to Notchboard</span>
     </div>
   </div>
-  <div class="hud-bar">
+
+  <div class="hud-bar" id="controls">
     <button class="pill" data-project="school" aria-pressed="false">1 · School</button>
     <button class="pill" data-project="dev" aria-pressed="true">2 · Development</button>
     <button class="pill" data-project="personal" aria-pressed="false">3 · Personal</button>
@@ -55,45 +259,160 @@
     <button class="pill" data-layout="focus" aria-pressed="false">Focus</button>
     <button class="pill" id="replayDragBtn">Replay Notch Drag</button>
   </div>
+
   <script>
-    const stage = document.getElementById('stage'), notch = document.getElementById('notch'), cursor = document.getElementById('cursor');
+    const stage = document.getElementById('stage');
+    const notch = document.getElementById('notch');
+    const cursor = document.getElementById('cursor');
     const windows = Array.from(document.querySelectorAll('.demo-window'));
+
     const LAYOUTS = {
-      'main-stack': [[2.5,9,55,84],[59.5,9,38,40],[59.5,53,38,40]],
-      'side-by-side': [[2.5,9,46,84],[51.5,9,46,84],[18,15,64,72]],
-      'grid': [[2.5,9,46,40],[51.5,9,46,40],[2.5,53,95,40]],
-      'focus': [[11,8,78,85],[15,12,70,77],[19,16,62,69]]
+      'main-stack':   [[2.5, 9, 55, 84], [59.5, 9, 38, 40], [59.5, 53, 38, 40]],
+      'side-by-side': [[2.5, 9, 46, 84], [51.5, 9, 46, 84], [18, 15, 64, 72]],
+      'grid':         [[2.5, 9, 46, 40], [51.5, 9, 46, 40], [2.5, 53, 95, 40]],
+      'focus':        [[11, 8, 78, 85],  [15, 12, 70, 77],  [19, 16, 62, 69]]
     };
+
     function renderStage() {
-      const rect = stage.getBoundingClientRect(), activeProject = stage.dataset.project, activeLayout = stage.dataset.layout;
+      const rect = stage.getBoundingClientRect();
+      const activeProject = stage.dataset.project;
+      const activeLayout = stage.dataset.layout;
       const slots = LAYOUTS[activeLayout] || LAYOUTS['main-stack'];
-      let idx = 0;
+
+      let slotIdx = 0;
       windows.forEach((win, i) => {
-        if (win.dataset.owner === activeProject) {
-          const [xp, yp, wp, hp] = slots[idx++ % slots.length];
-          win.style.width = `${(wp/100)*rect.width}px`; win.style.height = `${(hp/100)*rect.height}px`;
-          win.style.opacity = '1'; win.style.zIndex = String(20 - idx);
-          win.style.transform = `translate3d(${(xp/100)*rect.width}px, ${(yp/100)*rect.height}px, 0) scale(1)`;
+        const isActive = win.dataset.owner === activeProject;
+        if (isActive) {
+          const [xp, yp, wp, hp] = slots[slotIdx % slots.length];
+          slotIdx++;
+          const x = (xp / 100) * rect.width;
+          const y = (yp / 100) * rect.height;
+          win.style.width = `${(wp / 100) * rect.width}px`;
+          win.style.height = `${(hp / 100) * rect.height}px`;
+          win.style.opacity = '1';
+          win.style.zIndex = String(20 - slotIdx);
+          win.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1)`;
         } else {
-          win.style.opacity = '0'; win.style.zIndex = '1';
-          win.style.transform = `translate3d(${((35+i*7)/100)*rect.width}px, ${0.94*rect.height}px, 0) scale(0.15)`;
+          const dockX = ((35 + i * 7) / 100) * rect.width;
+          const dockY = 0.94 * rect.height;
+          win.style.opacity = '0';
+          win.style.zIndex = '1';
+          win.style.transform = `translate3d(${dockX}px, ${dockY}px, 0) scale(0.15)`;
         }
       });
-      document.querySelectorAll('.notch-slot').forEach(s => s.classList.toggle('active', s.dataset.slot === activeProject));
-      document.querySelectorAll('.pill[data-project]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.project === activeProject)));
-      document.querySelectorAll('.pill[data-layout]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layout === activeLayout)));
+
+      document.querySelectorAll('.notch-slot').forEach(s => {
+        s.classList.toggle('active', s.dataset.slot === activeProject);
+      });
+      document.querySelectorAll('[data-project]').forEach(btn => {
+        if (btn.classList.contains('pill')) {
+          btn.setAttribute('aria-pressed', String(btn.dataset.project === activeProject));
+        }
+      });
+      document.querySelectorAll('.pill[data-layout]').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.layout === activeLayout));
+      });
     }
-    document.querySelectorAll('.pill[data-project]').forEach(b => b.addEventListener('click', () => { stage.dataset.project = b.dataset.project; renderStage(); }));
-    document.querySelectorAll('.pill[data-layout]').forEach(b => b.addEventListener('click', () => { stage.dataset.layout = b.dataset.layout; renderStage(); }));
-    document.getElementById('replayDragBtn').addEventListener('click', () => {
-      stage.dataset.project = 'dev'; renderStage();
-      const rect = stage.getBoundingClientRect(), targetWin = document.getElementById('win-safari-dev');
-      cursor.dataset.state = 'visible'; cursor.style.transform = `translate3d(${rect.width*0.72}px, ${rect.height*0.56}px, 0)`;
-      setTimeout(() => { cursor.dataset.state = 'grabbing'; notch.dataset.open = 'true'; notch.dataset.hoverSlot = 'personal'; cursor.style.transform = `translate3d(${rect.width*0.56}px, ${rect.height*0.05}px, 0)`; targetWin.style.zIndex = '50'; targetWin.style.transform = `translate3d(${rect.width*0.38}px, ${rect.height*0.06}px, 0) scale(0.65)`; }, 650);
-      setTimeout(() => { notch.dataset.open = 'false'; notch.dataset.hoverSlot = ''; cursor.dataset.state = 'hidden'; stage.dataset.project = 'personal'; renderStage(); }, 1750);
+
+    let replayTimers = [];
+    function cancelNotchChoreography() {
+      replayTimers.forEach(clearTimeout);
+      replayTimers = [];
+      cursor.dataset.state = 'hidden';
+      notch.dataset.open = 'false';
+      notch.dataset.hoverSlot = '';
+      stage.dataset.draggingWin = '';
+    }
+
+    function playNotchChoreography() {
+      cancelNotchChoreography();
+      stage.dataset.project = 'dev';
+      renderStage();
+      const rect = stage.getBoundingClientRect();
+      const targetWin = document.getElementById('win-safari-dev');
+
+      cursor.dataset.state = 'visible';
+      cursor.style.transform = `translate3d(${rect.width * 0.72}px, ${rect.height * 0.56}px, 0)`;
+
+      replayTimers.push(setTimeout(() => {
+        cursor.dataset.state = 'grabbing';
+        notch.dataset.open = 'true';
+        notch.dataset.hoverSlot = 'personal';
+        cursor.style.transform = `translate3d(${rect.width * 0.56}px, ${rect.height * 0.05}px, 0)`;
+        targetWin.style.zIndex = '50';
+        targetWin.style.transform = `translate3d(${rect.width * 0.38}px, ${rect.height * 0.06}px, 0) scale(0.65)`;
+      }, 650));
+
+      replayTimers.push(setTimeout(() => {
+        notch.dataset.open = 'false';
+        notch.dataset.hoverSlot = '';
+        cursor.dataset.state = 'hidden';
+        stage.dataset.project = 'personal';
+        renderStage();
+      }, 1750));
+    }
+
+    function setChapter(chapter) {
+      stage.dataset.chapter = chapter;
+      document.querySelectorAll('.chapter-btn').forEach(btn => {
+        const active = btn.dataset.chapter === chapter;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    function activateChapter(chapter) {
+      cancelNotchChoreography();
+      setChapter(chapter);
+      if (chapter === 'projects') stage.dataset.project = 'dev';
+      if (chapter === 'layouts') {
+        stage.dataset.project = 'dev';
+        stage.dataset.layout = 'side-by-side';
+      }
+      renderStage();
+      if (chapter === 'notchboard') playNotchChoreography();
+    }
+
+    document.querySelectorAll('.chapter-btn').forEach(btn => {
+      btn.addEventListener('click', () => activateChapter(btn.dataset.chapter));
     });
-    window.addEventListener('keydown', e => { if (['1','2','3'].includes(e.key)) { stage.dataset.project = ({'1':'school','2':'dev','3':'personal'})[e.key]; renderStage(); } });
-    window.addEventListener('resize', renderStage); renderStage();
+
+    document.querySelectorAll('.pill[data-project]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cancelNotchChoreography();
+        setChapter('projects');
+        stage.dataset.project = btn.dataset.project;
+        renderStage();
+      });
+    });
+
+    document.querySelectorAll('.pill[data-layout]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cancelNotchChoreography();
+        setChapter('layouts');
+        stage.dataset.layout = btn.dataset.layout;
+        renderStage();
+      });
+    });
+
+    document.getElementById('replayDragBtn').addEventListener('click', () => activateChapter('notchboard'));
+
+    window.addEventListener('keydown', (e) => {
+      const tag = e.target?.tagName;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.target?.isContentEditable ||
+          ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+      const map = { '1': 'school', '2': 'dev', '3': 'personal' };
+      if (map[e.key]) {
+        cancelNotchChoreography();
+        setChapter('projects');
+        stage.dataset.project = map[e.key];
+        renderStage();
+      }
+    });
+
+    window.addEventListener('resize', () => { cancelNotchChoreography(); renderStage(); });
+    setChapter('projects');
+    renderStage();
   </script>
 </body>
 </html>
