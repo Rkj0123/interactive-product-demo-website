@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for AI coding and web-generation agents supporting HTML5, CSS3 hardware-accelerated transforms, and vanilla ES6+ JavaScript or React/Next.js without external video dependencies.
 metadata:
   author: ai-skills
-  version: "1.0.0"
+  version: "1.1.0"
   spec: "https://agentskills.io/specification"
   reference-site: "https://backdrop-app.com/"
 ---
@@ -198,3 +198,18 @@ Before delivering the website, verify the implementation against these checks:
 - **Lock coordinate ratios across viewport resizes:** If `.screen-overlay` changes pixel dimensions on window resize, hardcoded pixel offsets for cursor choreography and dock icons will drift off target. Express window rects and cursor waypoints as normalized percentages (`0..100%`) of `.screen-overlay` or scale a fixed-resolution virtual stage using a single CSS `--stage-scale` factor.
 - **Prevent auto-play tour conflicts with manual user clicks:** When an `IntersectionObserver` or timer is advancing tour steps automatically, clicking a pill without clearing the active timer causes the stage to snap back mid-animation. Always clear active tour timers on any manual click or keypress event.
 - **Missing user screenshots:** When the user only provides a product description without image assets, synthesize high-DPI SVG or HTML/CSS snapshot tiles inside each `.demo-window` frame rather than leaving placeholder boxes.
+
+## Supporting Files and Agent Workflow
+
+Read these files only as needed to keep the skill concise:
+
+- [`references/REFERENCE.md`](references/REFERENCE.md) — scroll-progress controller, spring solver, normalized window/dock presets, and cursor choreography. The snippets are illustrative building blocks; adapt coordinates, state transitions, and lifecycle cleanup to the target app.
+- [`assets/starter-template.html`](assets/starter-template.html) — runnable, dependency-free demonstration of workspace switching, layout presets, chapter selection, and simulated cursor drag.
+
+1. Inspect the real product and define three meaningful feature demonstrations; do not copy example product names or visuals into unrelated deliverables.
+2. Model each feature as a deterministic state with normalized window geometry. Use real screenshots when supplied, otherwise create clearly representative HTML/SVG demo surfaces.
+3. Start with the HTML template or port its compositing/state patterns into the user's framework. Keep the source of truth for stage state in one controller.
+4. Use the reference code for advanced motion, then add cleanup and interruption handling (replay, manual click, resize, visibility, and unmount).
+5. Verify responsive layout, click/keyboard parity, `prefers-reduced-motion`, logical tab order, visible focus, and the absence of embedded demo video.
+
+**Implementation boundary:** The starter template is a working educational blueprint, not a production app, and reference snippets must be integrated and tested rather than pasted together without wiring.
